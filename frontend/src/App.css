@@ -2,9 +2,9 @@
 
 
 #root {
-  max-width: 1280px;
+  /* max-width: 1280px; */
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
   text-align: center;
 }
 
@@ -49,6 +49,16 @@ body {
   line-height: 1.6;
   color: #333;
   background-color: #f8fafc;
+}
+
+/* Make date and time picker icons more visible */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0);
+  opacity: 1;
+  width: 20px;
+  height: 20px;
 }
 
 .app {
