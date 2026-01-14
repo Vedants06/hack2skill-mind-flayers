@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
+from datetime import datetime
 
 # Import our new fresh service
 from services.interaction_service import get_drug_analysis
@@ -49,6 +50,58 @@ async def check_risk(request: AnalysisRequest):
 
     # 4. Return the format the frontend (MedicalForm.tsx) expects
     return {
+        "medications": structured_meds,
+        "interactions": found_interactions,
+        "risk_level": risk_level,
+        "medication_count": len(structured_meds),
+        "interaction_count": len(found_interactions)
+    }
+
+# --- Doctor and Appointment Management ---
+
+# In-memory storage for doctors and appointments (replace with a real DB in production)
+doctors_db = []
+appointments_db = []
+
+class Doctor(BaseModel):
+    name: str
+    location: str
+    speciality: str
+    education: str
+    ratings: float
+
+class Appointment(BaseModel):
+    doctorId: int
+    doctorName: str
+    patientName: str
+    patientEmail: str
+    date: str
+    time: str
+    userId: Optional[str] = None
+
+@app.post("/doctors")
+async def add_doctor(doctor: Doctor):
+    doctor_dict = doctor.dict()
+    doctor_dict["id"] = len(doctors_db) + 1
+    doctors_db.append(doctor_dict)
+    return {"message": "Doctor added successfully", "doctor": doctor_dict}
+
+@app.get("/doctors")
+async def get_doctors():
+    return {"doctors": doctors_db}
+
+@app.post("/appointments")
+async def book_appointment(appointment: Appointment):
+    appointment_dict = appointment.dict()
+    appointment_dict["id"] = len(appointments_db) + 1
+    appointment_dict["createdAt"] = datetime.now().isoformat()
+    appointments_db.append(appointment_dict)
+    return {"message": "Appointment booked successfully", "appointment": appointment_dict}
+
+@app.get("/appointments/{user_id}")
+async def get_user_appointments(user_id: str):
+    user_appointments = [apt for apt in appointments_db if apt.get("userId") == user_id]
+    return {"appointments": user_appointments}
         "medication_count": len(med_names),
         "risk_level": ai_result.get("risk_level", "LOW"),
         "interaction_count": ai_result.get("interaction_count", 0),
