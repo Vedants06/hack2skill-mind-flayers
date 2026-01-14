@@ -50,12 +50,13 @@ async def check_risk(request: AnalysisRequest):
 
     # 4. Return the format the frontend (MedicalForm.tsx) expects
     return {
-        "medications": structured_meds,
-        "interactions": found_interactions,
-        "risk_level": risk_level,
-        "medication_count": len(structured_meds),
-        "interaction_count": len(found_interactions)
+        "medication_count": len(med_names),
+        "risk_level": ai_result.get("risk_level", "LOW"),
+        "interaction_count": ai_result.get("interaction_count", 0),
+        "details": ai_result.get("details", []),
+        "medications": structured_meds 
     }
+
 
 # --- Doctor and Appointment Management ---
 
@@ -102,12 +103,7 @@ async def book_appointment(appointment: Appointment):
 async def get_user_appointments(user_id: str):
     user_appointments = [apt for apt in appointments_db if apt.get("userId") == user_id]
     return {"appointments": user_appointments}
-        "medication_count": len(med_names),
-        "risk_level": ai_result.get("risk_level", "LOW"),
-        "interaction_count": ai_result.get("interaction_count", 0),
-        "details": ai_result.get("details", []),
-        "medications": structured_meds 
-    }
+        
 
 @app.get("/")
 def home():
