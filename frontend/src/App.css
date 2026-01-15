@@ -1,5 +1,4 @@
-@import "tailwindcss";
-
+@import "tailwindcss"; 
 
 #root {
   /* max-width: 1280px; */
@@ -19,6 +18,33 @@
 }
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+
+/* Force enable smooth scrolling and custom scrollbars */
+html {
+  scroll-behavior: smooth;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(124, 169, 130, 0.2);
+  border-radius: 10px;
+}
+
+/* This is the secret for the 3D 'Shades' effect */
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 @keyframes logo-spin {
