@@ -8,6 +8,12 @@
 # Ignore Python cache and virtual environments
 __pycache__/
 *.py[cod]
+backend/__pycache__/app.cpython-313.pyc
+backend/services/__pycache__/interaction_service.cpython-313.pyc
+*.pyc
+*.pyo
+*.pyd
+
 venv/
 env/
 
