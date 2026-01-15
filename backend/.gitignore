@@ -14,3 +14,7 @@ env/
 # Ignore Node.js dependencies
 node_modules/
 dist/
+
+backend/hackwins-mind-flayers-firebase-adminsdk-fbsvc-ccc4812dec.json
+# Ignore ALL Firebase Service Account JSON keys
+*-firebase-adminsdk-*.json

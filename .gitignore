@@ -20,3 +20,6 @@ env/
 # Ignore Node.js dependencies
 node_modules/
 dist/
+
+# Ignore ALL Firebase Service Account JSON keys
+backend/*-firebase-adminsdk-*.json
