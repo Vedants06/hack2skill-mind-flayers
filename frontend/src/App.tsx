@@ -8,8 +8,9 @@ import AddDoctor from './components/AddDoctor';
 import MyAppointments from './components/MyAppointments';
 // This is the only new import needed
 import AssistantPage from './pages/assistant';
+import { Onboarding } from './components/Onboarding';
 import { useAuth } from './firebase/useAuth';
-import { db, collection, query, where, onSnapshot, orderBy } from './firebase/firebase';
+import { db, collection, query, where, onSnapshot, orderBy, doc, getDoc } from './firebase/firebase';
 import './App.css';
 
 const App: React.FC = () => {
@@ -22,9 +23,37 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'new' | 'history'>('new');
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setShowOnboarding(false);
+      return;
+    }
+
+    // Check if user profile exists
+    const checkProfile = async () => {
+      try {
+        const userDocFn = await getDoc(doc(db, 'users', user.uid));
+        if (userDocFn.exists()) {
+          const data = userDocFn.data();
+          setProfileData(data);
+          if (!data.profileCompleted) {
+            setShowOnboarding(true);
+          } else {
+            setShowOnboarding(false);
+          }
+        } else {
+          setShowOnboarding(true);
+        }
+      } catch (error) {
+        console.error("Error checking profile:", error);
+      }
+    };
+    
+    checkProfile();
 
     const q = query(
       collection(db, 'reports'),
@@ -70,7 +99,10 @@ const App: React.FC = () => {
         <div className="flex items-center gap-4">
           {user ? (
             <>
-              <div className="hidden md:flex items-center gap-3 mr-4">
+              <div 
+                className="hidden md:flex items-center gap-3 mr-4 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => setEditingProfile(true)}
+              >
                 <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold border-2 border-teal-200">
                   {user.displayName?.charAt(0)}
                 </div>
@@ -119,7 +151,7 @@ const App: React.FC = () => {
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-4 pt-4">
-                      <button onClick={() => user ? setActiveSection('appointments') : signInWithGoogle()} className="bg-yellow-400 text-teal-950 font-bold px-10 py-5 rounded-2xl text-lg transition-all shadow-xl shadow-yellow-400/20 hover:bg-yellow-300 hover:scale-105 active:scale-95 flex items-center gap-3 group">
+                      <button onClick={() => user ? setActiveSection('appointments') : signInWithGoogle()} className="bg-yellow-400 text-teal-600 font-bold px-10 py-5 rounded-2xl text-lg transition-all shadow-xl shadow-yellow-400/20 hover:bg-yellow-300 hover:scale-105 active:scale-95 flex items-center gap-3 group">
                         Book appointment <span className="group-hover:translate-x-1 transition-transform">→</span>
                       </button>
                       <button onClick={() => user ? setActiveSection('drug-check') : signInWithGoogle()} className="bg-white/10 backdrop-blur-md border-2 border-white/20 text-white font-bold px-10 py-5 rounded-2xl text-lg hover:bg-white/20 transition-all">Start Health Check</button>
@@ -230,7 +262,20 @@ const App: React.FC = () => {
       {/* APPOINTMENT SECTIONS */}
       {activeSection === 'appointments' && <BookAppointment user={user} />}
       {activeSection === 'my-appointments' && <MyAppointments user={user} />}
-      {activeSection === 'add-doctor' && <AddDoctor />}
+      {(showOnboarding || editingProfile) && user && (
+        <Onboarding 
+          userId={user.uid} 
+          onComplete={() => {
+            setShowOnboarding(false);
+            setEditingProfile(false);
+            // Refresh profile data
+            getDoc(doc(db, 'users', user.uid)).then(doc => {
+              if (doc.exists()) setProfileData(doc.data());
+            });
+          }}
+          initialData={editingProfile ? profileData : undefined}
+        />
+      )}
     </div>
   );
 };

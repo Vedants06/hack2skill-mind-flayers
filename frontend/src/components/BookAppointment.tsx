@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DoctorCard from './DoctorCard';
 import { db, collection, onSnapshot, addDoc, query, orderBy, deleteDoc, doc, getDocs, where } from '../firebase/firebase';
+import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
 
 interface Doctor {
   id: string;
@@ -22,6 +23,9 @@ const BookAppointment: React.FC<BookAppointmentProps> = ({ user }) => {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSpeciality, setFilterSpeciality] = useState('');
+  
+  // Google Calendar integration
+  const { credentials, isAuthorized, isLoading: calendarLoading, authMessage, authorizeCalendar, revokeAuthorization } = useGoogleCalendar(user?.uid);
   
   const [bookingData, setBookingData] = useState({
     patientName: user?.displayName || '',
@@ -123,7 +127,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = ({ user }) => {
     if (!selectedDoctor) return;
 
     try {
-      await addDoc(collection(db, 'appointments'), {
+      const appointmentData: any = {
         doctorId: selectedDoctor.id,
         doctorName: selectedDoctor.name,
         patientName: bookingData.patientName,
@@ -133,13 +137,49 @@ const BookAppointment: React.FC<BookAppointmentProps> = ({ user }) => {
         time: bookingData.time,
         userId: user?.uid || null,
         createdAt: new Date().toISOString(),
-        status: 'pending'
-      });
-
-      setBookingMessage({ 
-        type: 'success', 
-        text: 'Appointment booked successfully!' 
-      });
+        status: 'pending',
+        location: selectedDoctor.location
+      };
+      
+      // Add to Firebase
+      await addDoc(collection(db, 'appointments'), appointmentData);
+      
+      // Add to Google Calendar if authorized
+      if (isAuthorized && credentials) {
+        try {
+          appointmentData.googleCredentials = credentials;
+          const calendarResponse = await fetch('http://localhost:8000/appointments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(appointmentData)
+          });
+          
+          const calendarResult = await calendarResponse.json();
+          
+          if (calendarResult.calendarResult?.success) {
+            setBookingMessage({ 
+              type: 'success', 
+              text: 'Appointment booked and added to your Google Calendar!' 
+            });
+          } else {
+            setBookingMessage({ 
+              type: 'success', 
+              text: 'Appointment booked successfully!' 
+            });
+          }
+        } catch (calError) {
+          console.error('Calendar error:', calError);
+          setBookingMessage({ 
+            type: 'success', 
+            text: 'Appointment booked (Calendar sync failed)' 
+          });
+        }
+      } else {
+        setBookingMessage({ 
+          type: 'success', 
+          text: 'Appointment booked successfully!' 
+        });
+      }
       
       // Update stored whatsapp for next time
       setStoredWhatsapp(bookingData.whatsapp);
@@ -192,6 +232,18 @@ const BookAppointment: React.FC<BookAppointmentProps> = ({ user }) => {
           <h1 className="text-4xl font-bold text-slate-800 mb-2">Book an Appointment</h1>
           <p className="text-slate-600">Find and book appointments with our qualified doctors</p>
         </div>
+
+        {/* Google Calendar Auth Message */}
+        {authMessage && (
+          <div className="mb-6 bg-emerald-100 border border-emerald-200 text-emerald-800 px-6 py-4 rounded-xl shadow-lg animate-pulse">
+            <div className="flex items-center gap-3">
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium">{authMessage}</span>
+            </div>
+          </div>
+        )}
 
         {/* Search and Filter */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
@@ -371,6 +423,53 @@ const BookAppointment: React.FC<BookAppointmentProps> = ({ user }) => {
                     style={{colorScheme: 'light'}}
                   />
                 </div>
+              </div>
+
+              {/* Google Calendar Integration */}
+              <div className="border-t border-slate-200 pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-slate-700">
+                    Add to Google Calendar
+                  </label>
+                  {isAuthorized && (
+                    <span className="text-xs text-emerald-600 flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      Connected
+                    </span>
+                  )}
+                </div>
+                {!isAuthorized ? (
+                  <button
+                    type="button"
+                    onClick={authorizeCalendar}
+                    disabled={calendarLoading}
+                    className="w-full flex items-center justify-center gap-2 bg-white border-2 border-slate-300 hover:border-emerald-500 text-slate-700 font-medium py-2.5 px-4 rounded-lg transition-all duration-200 disabled:opacity-50"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 48 48">
+                      <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+                      <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+                      <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+                      <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+                    </svg>
+                    {calendarLoading ? 'Connecting...' : 'Connect Google Calendar'}
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 w-full">
+                    <div className="flex-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm py-2 px-3 rounded-lg flex items-center gap-2">
+                      <span className="text-emerald-500 font-bold">✓</span>
+                      <span>Connected to Google Calendar</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={revokeAuthorization}
+                      className="px-3 py-2 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200"
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 mt-6">

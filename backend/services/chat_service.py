@@ -10,12 +10,14 @@ from firebase_admin import credentials, firestore
 load_dotenv()
 
 # 1. Initialize Firebase (Check if already initialized to prevent errors)
-if not firebase_admin._apps:
-    # Use the path to your JSON key file
-    cred = credentials.Certificate("hackwins-mind-flayers-firebase-adminsdk-fbsvc-ccc4812dec.json")
-    firebase_admin.initialize_app(cred)
-
-db = firestore.client()
+# Firebase initialization commented out - credentials file not found
+# Uncomment when credentials file is available
+# if not firebase_admin._apps:
+#     # Use the path to your JSON key file
+#     cred = credentials.Certificate("hackwins-mind-flayers-firebase-adminsdk-fbsvc-ccc4812dec.json")
+#     firebase_admin.initialize_app(cred)
+# 
+# db = firestore.client()
 
 # Initialize the Gemini Client
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))

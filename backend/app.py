@@ -7,7 +7,8 @@ import logging
 
 # --- IMPORT SERVICES ---
 from services.interaction_service import get_drug_analysis
-from services.chat_service import get_chat_response 
+from services.chat_service import get_chat_response
+from services.calendar_service import calendar_service 
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -107,6 +108,9 @@ class Appointment(BaseModel):
     date: str
     time: str
     userId: Optional[str] = None
+    location: Optional[str] = None
+    whatsapp: Optional[str] = None
+    googleCredentials: Optional[dict] = None
 
 @app.post("/doctors")
 async def add_doctor(doctor: Doctor):
@@ -124,8 +128,29 @@ async def book_appointment(appointment: Appointment):
     appointment_dict = appointment.model_dump()
     appointment_dict["id"] = len(appointments_db) + 1
     appointment_dict["createdAt"] = datetime.now().isoformat()
+    
+    # Add to Google Calendar if credentials are provided
+    calendar_result = None
+    if appointment.googleCredentials:
+        calendar_result = calendar_service.create_calendar_event(
+            appointment.googleCredentials,
+            appointment_dict
+        )
+        if calendar_result.get('success'):
+            appointment_dict['calendarEventId'] = calendar_result.get('event_id')
+            appointment_dict['calendarEventLink'] = calendar_result.get('event_link')
+    
     appointments_db.append(appointment_dict)
-    return {"message": "Appointment booked successfully", "appointment": appointment_dict}
+    
+    response = {
+        "message": "Appointment booked successfully",
+        "appointment": appointment_dict
+    }
+    
+    if calendar_result:
+        response['calendarResult'] = calendar_result
+    
+    return response
 
 @app.get("/appointments/{user_id}")
 async def get_user_appointments(user_id: str):
@@ -135,3 +160,37 @@ async def get_user_appointments(user_id: str):
 @app.get("/")
 def home():
     return {"status": "MediBuddy & SafeDose Backend Running"}
+
+# --- GOOGLE CALENDAR ROUTES ---
+
+@app.get("/api/calendar/auth-url")
+async def get_calendar_auth_url(user_id: str):
+    """Generate Google OAuth URL for calendar access"""
+    try:
+        # Check if calendar service is configured or mock mode allowed
+        # if not calendar_service.is_configured:
+        #    raise HTTPException(...)
+        
+        auth_url, state = calendar_service.get_authorization_url(state=user_id)
+        logger.info(f"Generated auth URL for user {user_id}")
+        return {"auth_url": auth_url, "state": state}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating auth URL: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+class CalendarTokenRequest(BaseModel):
+    code: str
+    userId: str
+
+@app.post("/api/calendar/token")
+async def exchange_calendar_token(request: CalendarTokenRequest):
+    """Exchange authorization code for access token"""
+    try:
+        logger.info(f"Exchanging token for user {request.userId}")
+        token_data = calendar_service.exchange_code_for_token(request.code)
+        return {"success": True, "credentials": token_data}
+    except Exception as e:
+        logger.error(f"Error exchanging token: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Failed to exchange token: {str(e)}")
