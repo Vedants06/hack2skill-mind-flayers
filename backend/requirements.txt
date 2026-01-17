@@ -13,3 +13,5 @@ pymupdf
 Pillow
 groq
 gTTS
+email-validator
+python-multipart
