@@ -21,6 +21,8 @@ import { HeroSection } from './components/landing/HeroSection';
 import { ServicesSection } from './components/landing/ServicesSection';
 import { Footer } from './components/landing/Footer';
 
+import { Onboarding } from './components/Onboarding';
+
 import './App.css';
 
 const App: React.FC = () => {
@@ -35,10 +37,39 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'new' | 'history'>('new');
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
 
   // Real-time Firebase History logic from your original code
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setShowOnboarding(false);
+      return;
+    }
+
+    // Check if user profile exists
+    const checkProfile = async () => {
+      try {
+        const userDocFn = await getDoc(doc(db, 'users', user.uid));
+        if (userDocFn.exists()) {
+          const data = userDocFn.data();
+          setProfileData(data);
+          if (!data.profileCompleted) {
+            setShowOnboarding(true);
+          } else {
+            setShowOnboarding(false);
+          }
+        } else {
+          setShowOnboarding(true);
+        }
+      } catch (error) {
+        console.error("Error checking profile:", error);
+      }
+    };
+    
+    checkProfile();
+
     const q = query(
       collection(db, 'reports'),
       where('userId', '==', user.uid),
@@ -148,7 +179,20 @@ const App: React.FC = () => {
         {/* APPOINTMENT SECTIONS */}
         {activeSection === 'appointments' && <BookAppointment user={user} />}
         {activeSection === 'my-appointments' && <MyAppointments user={user} />}
-        {activeSection === 'add-doctor' && <AddDoctor />}
+        {(showOnboarding || editingProfile) && user && (
+        <Onboarding 
+          userId={user.uid} 
+          onComplete={() => {
+            setShowOnboarding(false);
+            setEditingProfile(false);
+            // Refresh profile data
+            getDoc(doc(db, 'users', user.uid)).then(doc => {
+              if (doc.exists()) setProfileData(doc.data());
+            });
+          }}
+          initialData={editingProfile ? profileData : undefined}
+        />
+      )}
         
       </div>
     </div>
