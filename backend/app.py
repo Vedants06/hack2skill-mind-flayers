@@ -18,6 +18,8 @@ from services.chat_service import get_chat_response
 from services.calendar_service import calendar_service 
 from services.diagnostic_service import run_diagnosis
 
+app = FastAPI(title="MediBuddy & SafeDose API")
+
 # Add the current directory to sys.path so Vercel can find the 'services' folder
 sys.path.append(str(Path(__file__).parent))
 
@@ -44,7 +46,6 @@ if not os.path.exists(static_path):
     os.makedirs(static_path)
     print(f"Created missing directory: {static_path}")
 
-app = FastAPI(title="MediBuddy & SafeDose API")
 
 # Mount static files to serve images/reports
 app.mount("/static", StaticFiles(directory="static"), name="static")

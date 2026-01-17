@@ -6,13 +6,25 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from google import genai
 from google.genai import types
+from firebase_admin import credentials, initialize_app, _apps
 
 load_dotenv()
 
-# 1. Initialize Firebase (Singleton pattern)
-if not firebase_admin._apps:
+
+# Get credentials from environment variable
+cred_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+if cred_json:
+    # Use the JSON string instead of a filename
+    cred_dict = json.loads(cred_json)
+    if not _apps:
+        cred = credentials.Certificate(cred_dict)
+        initialize_app(cred)
+else:
+    # Fallback for local development if you still have the file locally
     cred = credentials.Certificate("hackwins-mind-flayers-firebase-adminsdk-fbsvc-ccc4812dec.json")
-    firebase_admin.initialize_app(cred)
+    if not _apps:
+        initialize_app(cred)
 
 db = firestore.client()
 
