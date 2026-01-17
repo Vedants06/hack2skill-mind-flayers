@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Stethoscope, Mic, Upload, Activity, Volume2,
-  FileText, Send, RefreshCw, X, Play, Square, History, Calendar, ChevronRight,
+  Stethoscope, Mic, Upload, Activity,
+  FileText, RefreshCw, X, Play, Square, History, Calendar, ChevronRight,
   Brain, Waves, Eye, Zap, CheckCircle2, Sparkles
 } from 'lucide-react';
 // Firebase logic preserved
