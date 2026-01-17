@@ -6,6 +6,11 @@ from datetime import datetime
 from fastapi.staticfiles import StaticFiles 
 import logging
 import os
+import json
+import firebase_admin
+from firebase_admin import credentials
+import sys
+from pathlib import Path
 
 # --- IMPORT SERVICES ---
 from services.interaction_service import get_drug_analysis
@@ -13,9 +18,25 @@ from services.chat_service import get_chat_response
 from services.calendar_service import calendar_service 
 from services.diagnostic_service import run_diagnosis
 
+# Add the current directory to sys.path so Vercel can find the 'services' folder
+sys.path.append(str(Path(__file__).parent))
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+cred_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+if cred_json:
+    # Convert the string back into a Python dictionary
+    cred_dict = json.loads(cred_json)
+    
+    # Initialize Firebase using the dictionary instead of a file path
+    if not firebase_admin._apps:
+        cred = credentials.Certificate(cred_dict)
+        firebase_admin.initialize_app(cred)
+else:
+    print("WARNING: Firebase credentials not found in environment variables!")
 
 # Ensure static directory exists for storage
 static_path = "static"
