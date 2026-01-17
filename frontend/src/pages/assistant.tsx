@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import {  AnimatePresence } from 'framer-motion';
 import {
   Stethoscope, Send, Pill, Activity, Heart, Sparkles, Plus
 } from 'lucide-react';
