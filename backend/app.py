@@ -3,17 +3,29 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+from fastapi import UploadFile, File, Form
+from fastapi.staticfiles import StaticFiles 
+from typing import Optional
 import logging
+import os
 
 # --- IMPORT SERVICES ---
 from services.interaction_service import get_drug_analysis
 from services.chat_service import get_chat_response 
 
+from services.diagnostic_service import run_diagnosis
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+static_path = "static"
+if not os.path.exists(static_path):
+    os.makedirs(static_path)
+    print(f"Created missing directory: {static_path}")
+
 app = FastAPI(title="MediBuddy & SafeDose API")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,6 +50,26 @@ class ChatRequest(BaseModel):
     med_history: List[str]
 
 # --- AI ASSISTANT ROUTE ---
+
+@app.post("/api/diagnose")
+async def analyze_health_packet(
+    image: Optional[UploadFile] = File(None),
+    audio: Optional[UploadFile] = File(None),
+    user_id: str = Form(...)
+):
+    # 1. Read files into bytes
+    image_bytes = await image.read() if image else None
+    audio_bytes = await audio.read() if audio else None
+
+    # 2. Process via the new service
+    result = await run_diagnosis(
+        user_id=user_id,
+        image_data=image_bytes,
+        audio_data=audio_bytes,
+        image_mime=image.content_type if image else None
+    )
+    
+    return result
 
 @app.post("/api/chat")
 async def chat_with_assistant(request: ChatRequest):
