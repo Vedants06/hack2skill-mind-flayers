@@ -1,48 +1,59 @@
 import { useState, useEffect, createContext, useContext, type ReactNode } from 'react';
-import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, type User } from 'firebase/auth';
+import { 
+  onAuthStateChanged, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signOut, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword,
+  updateProfile,
+  type User 
+} from 'firebase/auth';
+import { auth } from './firebase';
 
 interface AuthContextType {
   user: User | null;
+  loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  login: (email: string, pass: string) => Promise<void>;
+  signup: (email: string, pass: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const auth = getAuth();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
     });
-  }, [auth]);
+    return () => unsubscribe();
+  }, []);
 
-  const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+  const signup = async (email: string, pass: string, name: string) => {
+    const res = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(res.user, { displayName: name });
   };
 
-  const logout = async () => {
-    await signOut(auth);
-  };
+  const login = (email: string, pass: string) => signInWithEmailAndPassword(auth, email, pass);
+  
+  const signInWithGoogle = () => signInWithPopup(auth, new GoogleAuthProvider());
+
+  const logout = () => signOut(auth);
 
   return (
-    <AuthContext.Provider value={{ user, signInWithGoogle, logout }}>
-      {children}
+    <AuthContext.Provider value={{ user, loading, signup, login, signInWithGoogle, logout }}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

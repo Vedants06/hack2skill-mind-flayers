@@ -1,5 +1,7 @@
 import { cn } from '../../libs/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
+// Ensure the path below is correct for your image file
+import logoImg from '../../assets/logo_crop-removebg-preview.png';
 
 interface NavbarProps {
   user?: {
@@ -25,8 +27,8 @@ export const Navbar = ({ user, onLogin, onLogout, onNavigate, activeSection }: N
       scrollToTop();
     } else {
       onNavigate('landing');
-      // Small timeout to allow the landing page to render before scrolling
-      setTimeout(scrollToTop, 10);
+      // Timeout ensures the section exists before scrolling
+      setTimeout(scrollToTop, 50);
     }
   };
 
@@ -51,15 +53,30 @@ export const Navbar = ({ user, onLogin, onLogout, onNavigate, activeSection }: N
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-border/50 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         
-        {/* Logo - Now scrolls to top or navigates home */}
+        {/* Unified Logo Section */}
         <div 
-          className="flex items-center gap-2 cursor-pointer" 
+          className="flex items-center gap-3 cursor-pointer group" 
           onClick={handleHomeClick}
         >
-          <div className="bg-emerald-600 p-1.5 rounded-lg">
-            <span className="text-white font-bold text-lg">✚</span>
+          <div className="relative">
+            {/* The Logo Image */}
+            <img 
+              src={logoImg} 
+              alt="MediCare Logo" 
+              className="w-10 h-10 object-contain transition-transform group-hover:scale-110" 
+            />
+            {/* Soft glow effect */}
+            <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
-          <span className="text-xl font-bold text-foreground">MediBuddy</span>
+          
+          <div className="flex flex-col">
+            <span className="text-2xl font-semibold tracking-tight text-slate-800 leading-none">
+              Medi<span className="text-emerald-600">Care</span>
+            </span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              AI Health Lab
+            </span> 
+          </div>
         </div>
 
         {/* Center Navigation */}
@@ -103,7 +120,7 @@ export const Navbar = ({ user, onLogin, onLogout, onNavigate, activeSection }: N
         </nav>
 
         {/* Right - Auth */}
-        <div>
+        <div className="flex items-center gap-4">
           {user ? (
             <div className="flex items-center gap-3">
               <Avatar className="w-9 h-9 border-2 border-emerald-200">
@@ -114,7 +131,7 @@ export const Navbar = ({ user, onLogin, onLogout, onNavigate, activeSection }: N
               </Avatar>
               <button
                 onClick={onLogout}
-                className="px-5 py-2 bg-emerald-600 text-white rounded-full text-sm font-semibold hover:bg-emerald-700 transition-colors shadow-md"
+                className="px-4 py-1 bg-green-600 text-white rounded-full text-sm font-semibold hover:bg-green-500 transition-colors shadow-md"
               >
                 Logout
               </button>

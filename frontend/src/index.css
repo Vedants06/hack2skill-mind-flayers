@@ -1,10 +1,20 @@
 /* This ensures it targets every single element including buttons and inputs */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+
+.inter-font {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 200;
+  font-style: normal;
+}
+
 * {
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

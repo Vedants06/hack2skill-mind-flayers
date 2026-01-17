@@ -61,7 +61,7 @@ export const ServicesSection = ({ onNavigate }: ServicesSectionProps) => {
     <section id="services-section" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
-        <div className="text- mb-12">
+        <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
             Our Services
           </h2>
@@ -77,10 +77,10 @@ export const ServicesSection = ({ onNavigate }: ServicesSectionProps) => {
               <div className="w-8 h-8 rounded-full bg-amber-200 border-2 border-white flex items-center justify-center text-xs font-bold text-amber-700">S</div>
             </div>
             <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
-              <span className="text-white text-xs">+</span>
+              <span className="text-white text-center text-lg">+</span>
             </div>
             <div>
-              <span className="text-lg font-bold text-foreground">10M</span>
+              <span className="text-lg font-bold text-foreground">1k</span>
               <span className="text-sm text-muted-foreground ml-1">Happy Users</span>
             </div>
           </div>

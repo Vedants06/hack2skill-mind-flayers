@@ -1,3 +1,5 @@
+import logoImg from '../../assets/logo_crop-removebg-preview.png';
+
 interface FooterProps {
   onNavigate: (section: string) => void;
 }
@@ -11,10 +13,17 @@ export const Footer = ({ onNavigate }: FooterProps) => {
           {/* Brand Column */}
           <div className="space-y-6">
             <div className="flex items-center gap-2">
-              <div className="bg-emerald-500 p-1.5 rounded-lg">
-                <span className="text-white font-bold text-xl">✚</span>
-              </div>
-              <h1 className="text-2xl font-bold text-white tracking-wide">MediBuddy</h1>
+              <div className="relative">
+            {/* The Logo Image */}
+            <img 
+              src={logoImg} 
+              alt="MediCare Logo" 
+              className="w-10 h-10 object-contain transition-transform group-hover:scale-110" 
+            />
+            {/* Soft glow effect */}
+            <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+              <h1 className="text-2xl font-bold text-white tracking-wide">MediCare</h1>
             </div>
             <p className="text-sm leading-relaxed text-start opacity-70">
               Revolutionizing personal healthcare through AI-driven insights, 
@@ -71,7 +80,7 @@ export const Footer = ({ onNavigate }: FooterProps) => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-40">
-            © 2026 MediBuddy AI. All Rights Reserved.
+            © 2026 MediCare AI. All Rights Reserved.
           </p>
           <div className="flex gap-8 text-[10px] font-bold uppercase tracking-[0.2em] opacity-40">
             <span className="hover:text-emerald-400 cursor-pointer">Terms</span>

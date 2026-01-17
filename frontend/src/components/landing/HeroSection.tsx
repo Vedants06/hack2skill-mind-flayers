@@ -128,7 +128,7 @@ export const HeroSection = ({ onStartCheckup, onTalkToAI }: HeroSectionProps) =>
       bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-950
       rounded-2xl md:rounded-3xl lg:rounded-[2.5rem]
       px-6 md:px-10 lg:px-14 py-5 md:py-6
-      flex flex-col md:flex-row items-center justify-between
+      flex flex-col md:flex-row items-center justify-around
       gap-6 md:gap-10 lg:gap-16
       shadow-2xl shadow-emerald-950/50
       border border-emerald-700/20
@@ -155,12 +155,12 @@ export const HeroSection = ({ onStartCheckup, onTalkToAI }: HeroSectionProps) =>
         `}>
           <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-60" />
         </span>
-        <span className="font-medium">+1 800 MEDI-BUDDY</span>
+        <span className="font-medium">+1 800 MEDI-CARE</span>
       </div>
 
       <div className="hidden sm:flex items-center gap-3">
         <span className="text-base opacity-90">✉</span>
-        <span className="hover:text-white transition-colors">support@medibuddy.ai</span>
+        <span className="hover:text-white transition-colors">support@medicare.ai</span>
       </div>
     </div>
 
@@ -173,7 +173,6 @@ export const HeroSection = ({ onStartCheckup, onTalkToAI }: HeroSectionProps) =>
         hover:from-emerald-400 hover:via-teal-400 hover:to-emerald-400
         text-white font-semibold text-base md:text-lg tracking-wide
         rounded-full
-        mr-50
         shadow-xl shadow-emerald-700/50
         transition-all duration-500
         hover:shadow-2xl hover:shadow-emerald-600/60

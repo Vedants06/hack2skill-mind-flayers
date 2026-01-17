@@ -1,10 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Stethoscope, Send, Pill, Activity, Heart, Sparkles
+  Stethoscope, Send, Pill, Activity, Heart, Sparkles, Plus
 } from 'lucide-react';
 import { db } from '../firebase/firebase';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  getDocs,
+  writeBatch
+} from 'firebase/firestore';
 import { ChatSidebar } from '../components/Assistant/ChatSidebar';
 import { MessageBubble } from '../components/Assistant/MessageBubble';
 import { MoodOrb } from '../components/Assistant/MoodOrb';
@@ -14,7 +21,7 @@ interface Message {
   parts: { text: string }[];
 }
 
-export default function AssistantPage({ user, medHistory }: any) {
+export default function AssistantPage({ user, medHistory, userProfile }: any) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -26,11 +33,9 @@ export default function AssistantPage({ user, medHistory }: any) {
 
   // 1. REAL-TIME HISTORY SYNC
   useEffect(() => {
-    if (!user?.uid) {
-      console.warn("No User UID found. Chat history listener not started.");
-      return;
-    }
+    if (!user?.uid) return;
 
+    // Path: chats > {userId} > messages
     const q = query(
       collection(db, 'chats', user.uid, 'messages'),
       orderBy('timestamp', 'asc')
@@ -57,13 +62,36 @@ export default function AssistantPage({ user, medHistory }: any) {
     return () => unsubscribe();
   }, [user?.uid, user?.displayName]);
 
+  // Scroll to bottom whenever messages update
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // 2. UPDATED HANDLE SEND (Fixing the 422 error)
+  // 2. NEW SESSION LOGIC (Clears Firestore collection)
+  const handleNewSession = async () => {
+    if (!user?.uid) return;
+    setIsLoading(true);
+    try {
+      const messagesRef = collection(db, 'chats', user.uid, 'messages');
+      const snapshot = await getDocs(messagesRef);
+
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+
+      await batch.commit();
+      // onSnapshot will trigger automatically and reset the UI
+    } catch (error) {
+      console.error("Error clearing session:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 3. HANDLE SEND
   const handleSend = async () => {
     if (!input.trim() || isLoading || !user?.uid) return;
 
@@ -72,17 +100,14 @@ export default function AssistantPage({ user, medHistory }: any) {
     setIsLoading(true);
 
     try {
-      const clinicalContext = activeMeds
-        .map((m: any) => typeof m === 'object' ? m.name : m)
-        .join(', ');
-
       const response = await fetch('http://localhost:8000/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: user.uid,
           query: currentInput,
-          med_history: activeMeds.map((m: any) => typeof m === 'object' ? m.name : m)
+          med_history: activeMeds.map((m: any) => typeof m === 'object' ? m.name : m),
+          user_profile: userProfile // Sending onboarding data to Gemini
         }),
       });
 
@@ -93,13 +118,11 @@ export default function AssistantPage({ user, medHistory }: any) {
 
     } catch (error: any) {
       console.error("Chat Error:", error);
-      // Change this line to see the actual error message
-      const errorMessage = error.response?.data?.detail || error.message || "Unknown Error";
+      const errorMessage = error.message || "Unknown Error";
       setMessages(prev => [...prev, {
         role: 'model',
-        parts: [{ text: `Error: ${errorMessage}. Please check if your backend is running.` }]
+        parts: [{ text: `Error: ${errorMessage}. Check if your backend is running.` }]
       }]);
-
     } finally {
       setIsLoading(false);
     }
@@ -114,10 +137,24 @@ export default function AssistantPage({ user, medHistory }: any) {
       </div>
 
       <div className="z-10 w-full max-w-[1600px] grid grid-cols-12 gap-8 h-[90vh]">
+
+        {/* SIDEBAR: Pass handleNewSession here */}
         <aside className="col-span-3 hidden lg:flex bg-white/40 backdrop-blur-2xl border border-white/60 rounded-[2.5rem] p-8 flex-col shadow-2xl shadow-emerald-900/5">
+          {/* THIS IS YOUR SINGLE PRIMARY BUTTON */}
+          <button
+            onClick={handleNewSession}
+            disabled={isLoading}
+            className="flex items-center justify-center gap-3 w-full p-4 bg-[#7CA982] hover:bg-emerald-700 text-white rounded-2xl transition-all shadow-lg mb-8 font-bold uppercase tracking-wider text-xs disabled:opacity-50"
+          >
+            <Plus size={18} />
+            New Session
+          </button>
+
+          {/* Sidebar now only handles navigation/history links */}
           <ChatSidebar />
         </aside>
 
+        {/* MAIN CHAT AREA */}
         <main className="col-span-12 lg:col-span-6 bg-white/50 backdrop-blur-3xl border border-white/80 rounded-[3rem] shadow-2xl shadow-emerald-900/10 flex flex-col overflow-hidden relative">
           <header className="p-7 border-b border-white/20 flex items-center justify-between bg-white/20 backdrop-blur-md">
             <div className="flex items-center gap-4">
@@ -171,13 +208,35 @@ export default function AssistantPage({ user, medHistory }: any) {
           </footer>
         </main>
 
+        {/* RIGHT ASIDE: Clinical Profile & Metrics */}
         <aside className="col-span-3 hidden lg:flex bg-white/40 backdrop-blur-2xl border border-white/60 rounded-[2.5rem] p-8 flex-col shadow-2xl shadow-emerald-900/5 overflow-hidden">
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-6">
             <Pill className="text-emerald-600" size={22} />
             <span className="font-bold text-slate-800 text-xs uppercase tracking-widest">Clinical Profile</span>
           </div>
 
-          <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+          {/* User Metrics from Onboarding */}
+          {userProfile && (
+            <div className="bg-white/80 p-5 rounded-[2rem] border border-white shadow-sm mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Activity size={16} className="text-emerald-500" />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Vital Stats</span>
+              </div>
+              <p className="text-sm text-slate-700 font-medium">
+                {userProfile.age}y • {userProfile.gender} • {userProfile.height}cm • {userProfile.weight}kg
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {userProfile.conditions?.map((c: string, i: number) => (
+                  <span key={i} className="px-2 py-1 bg-red-50 text-red-600 text-[9px] font-bold rounded-lg border border-red-100 uppercase">
+                    {c}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Medications</span>
             {activeMeds.map((med: any, i: number) => (
               <div key={i} className="bg-white/80 p-5 rounded-[2rem] border border-white shadow-sm hover:shadow-xl transition-all">
                 <div className="flex justify-between items-center mb-2">

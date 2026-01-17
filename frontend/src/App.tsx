@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './firebase/useAuth';
-import { db, collection, query, where, onSnapshot, orderBy } from './firebase/firebase';
+import { db, collection, query, where, onSnapshot, orderBy, doc, getDoc } from './firebase/firebase';
 
 // UI Components
 import MedicationForm from './components/MedicationForm';
@@ -8,29 +8,23 @@ import RiskDisplay from './components/RiskDisplay';
 import HistoryItem from './components/HistoryItem';
 import RiskSummary from './components/RiskSummary';
 import BookAppointment from './components/BookAppointment';
-import AddDoctor from './components/AddDoctor';
 import MyAppointments from './components/MyAppointments';
 
 // Pages
 import DiagnosticPage from './pages/DiagnosticPage';
 import AssistantPage from './pages/assistant';
+import { AuthPage } from './pages/AuthPage';
 
 // Landing UI Components
 import { Navbar } from './components/landing/Navbar';
 import { HeroSection } from './components/landing/HeroSection';
 import { ServicesSection } from './components/landing/ServicesSection';
 import { Footer } from './components/landing/Footer';
-
 import { Onboarding } from './components/Onboarding';
-
 import './App.css';
 
 const App: React.FC = () => {
-  // Auth Logic from your original code
-  const auth = useAuth() as any;
-  const user = auth?.user;
-  const signInWithGoogle = auth?.signInWithGoogle;
-  const logout = auth?.logout;
+  const { user, loading, logout } = useAuth();
 
   // State Management
   const [activeSection, setActiveSection] = useState<string>('landing');
@@ -41,25 +35,28 @@ const App: React.FC = () => {
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
 
-  // Real-time Firebase History logic from your original code
+  // NEW: Auto-redirect after successful login
+  useEffect(() => {
+    if (user && activeSection === 'auth') {
+      setActiveSection('landing'); // Redirect to landing or 'diagnostic'
+    }
+  }, [user, activeSection]);
+
+  // Real-time Firebase History & Profile logic
   useEffect(() => {
     if (!user) {
       setShowOnboarding(false);
+      setHistory([]);
       return;
     }
 
-    // Check if user profile exists
     const checkProfile = async () => {
       try {
         const userDocFn = await getDoc(doc(db, 'users', user.uid));
         if (userDocFn.exists()) {
           const data = userDocFn.data();
           setProfileData(data);
-          if (!data.profileCompleted) {
-            setShowOnboarding(true);
-          } else {
-            setShowOnboarding(false);
-          }
+          setShowOnboarding(!data.profileCompleted);
         } else {
           setShowOnboarding(true);
         }
@@ -82,46 +79,46 @@ const App: React.FC = () => {
       }));
       setHistory(records);
     }, (error) => {
-      console.error("Firebase Error:", error);
+      console.error("Firebase History Error:", error);
     });
     return () => unsubscribe();
   }, [user]);
 
-  // Combined Navigation Handler
   const handleNavigate = (section: string) => {
-    // If trying to access a tool without being logged in, trigger login
-    if (section !== 'landing' && !user) {
-      signInWithGoogle();
-      return;
-    }
     setActiveSection(section);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Loading Screen
-  if (auth?.loading) return (
+  if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
       <div className="flex flex-col items-center gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
-        <p className="text-slate-500 font-medium animate-pulse">Loading medical profile...</p>
+        <p className="text-slate-500 font-medium animate-pulse">Initializing MediBuddy...</p>
       </div>
     </div>
   );
 
+  // AUTH GATE: Prevent empty screen by ensuring AuthPage shows if user is null and in a restricted section
+  const isToolSection = ['diagnostic', 'chatbot', 'drug-check', 'appointments', 'my-appointments'].includes(activeSection);
+  
   return (
     <div className="min-h-screen bg-white font-sans">
-      {/* 1. Navbar (Integrated logic) */}
+      {activeSection !== 'auth' && (
       <Navbar 
         user={user}
-        onLogin={signInWithGoogle}
+        onLogin={() => handleNavigate('auth')}
         onLogout={logout}
         onNavigate={handleNavigate}
         activeSection={activeSection}
       />
+    )}
 
-      {/* 2. Dynamic Content */}
-      <div > {/* Add padding top to prevent content hiding behind fixed Navbar */}
+    {/* 2. Adjust padding: Remove pt-16 if Navbar is hidden to avoid a gap */}
+    <div className={activeSection !== 'auth' ? "pt-0" : ""}>
         
+        {/* LOGIN / SIGNUP PAGE - Show if specifically on 'auth' OR trying to access tools while logged out */}
+        {((activeSection === 'auth' || isToolSection) && !user) && <AuthPage />}
+
         {/* LANDING PAGE */}
         {activeSection === 'landing' && (
           <main className="animate-in fade-in duration-500">
@@ -135,21 +132,21 @@ const App: React.FC = () => {
         )}
 
         {/* DIAGNOSTIC LAB */}
-        {activeSection === 'diagnostic' && (
+        {activeSection === 'diagnostic' && user && (
           <div className="min-h-[calc(100vh-80px)] bg-slate-50">
             <DiagnosticPage user={user} />
           </div>
         )}
 
         {/* CHATBOT / AI ASSISTANT */}
-        {activeSection === 'chatbot' && (
+        {activeSection === 'chatbot' && user && (
           <div className="h-[calc(100vh-80px)] relative">
-            <AssistantPage user={user} medHistory={history} />
+            <AssistantPage user={user} medHistory={history} userProfile={profileData} />
           </div>
         )}
 
         {/* DRUG CHECK SECTION */}
-        {activeSection === 'drug-check' && (
+        {activeSection === 'drug-check' && user && (
           <main className="max-w-7xl mx-auto p-4 md:p-8 pb-20 min-h-screen">
             <div className="flex gap-8 mb-10 border-b border-gray-200">
               <button onClick={() => setActiveTab('new')} className={`pb-4 text-sm font-bold transition-all uppercase tracking-widest flex items-center gap-2 ${activeTab === 'new' ? 'border-b-2 border-emerald-600 text-emerald-600' : 'text-gray-400 hover:text-gray-600'}`}>➕ New Analysis</button>
@@ -177,23 +174,23 @@ const App: React.FC = () => {
         )}
 
         {/* APPOINTMENT SECTIONS */}
-        {activeSection === 'appointments' && <BookAppointment user={user} />}
-        {activeSection === 'my-appointments' && <MyAppointments user={user} />}
+        {activeSection === 'appointments' && user && <BookAppointment user={user} />}
+        {activeSection === 'my-appointments' && user && <MyAppointments user={user} />}
+
+        {/* ONBOARDING OVERLAY */}
         {(showOnboarding || editingProfile) && user && (
-        <Onboarding 
-          userId={user.uid} 
-          onComplete={() => {
-            setShowOnboarding(false);
-            setEditingProfile(false);
-            // Refresh profile data
-            getDoc(doc(db, 'users', user.uid)).then(doc => {
-              if (doc.exists()) setProfileData(doc.data());
-            });
-          }}
-          initialData={editingProfile ? profileData : undefined}
-        />
-      )}
-        
+          <Onboarding 
+            userId={user.uid} 
+            onComplete={() => {
+              setShowOnboarding(false);
+              setEditingProfile(false);
+              getDoc(doc(db, 'users', user.uid)).then(d => {
+                if (d.exists()) setProfileData(d.data());
+              });
+            }}
+            initialData={editingProfile ? profileData : undefined}
+          />
+        )}
       </div>
     </div>
   );
