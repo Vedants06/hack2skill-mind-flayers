@@ -4,7 +4,7 @@ Medicare is an end-to-end healthcare platform designed to bridge the gap between
 
 ## 🌟 Key Features
 
-- **AI Medical Interpreter:** Uses Groq & Gemini AI to translate complex PDF lab reports and blood tests into plain, empathetic English.
+- **AI Medical Interpreter:** AI to translate complex PDF lab reports and blood tests into plain, empathetic English.
 - **Risk Assessment Dashboard:** Real-time analysis of health data to generate safety scores and visual health summaries.
 - **SafeDose Management:** Automated medication scheduling with integrated **Google Calendar** synchronization.
 - **Accessibility Suite:** Integrated **gTTS (Google Text-to-Speech)** for voice-guided medical instructions.
