@@ -56,7 +56,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",          # Local React development
         "http://localhost:5173",          # Local development
-        "https://medicare-vision.vercel.app" # <--- YOUR ACTUAL LIVE VERCEL FRONTEND URL
+        "https://medicare-vision.vercel.app", # Production frontend
+        "https://medicare-backend-zeta.vercel.app", # Production backend
+        "https://*.vercel.app"  # Allow all Vercel preview deployments
     ],
     allow_credentials=True,
     allow_methods=["*"],
