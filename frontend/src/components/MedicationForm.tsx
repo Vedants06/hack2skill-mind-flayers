@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { db, collection, addDoc } from '../firebase/firebase';
 import { useAuth } from '../firebase/useAuth';
+import API_BASE_URL from '../config.ts';
 
 interface MedicationFormProps {
   onAnalysisComplete: (data: any) => void;
@@ -50,7 +51,7 @@ const MedicationForm: React.FC<MedicationFormProps> = ({ onAnalysisComplete }) =
       }
 
       // 2. Call the Backend (Using the key 'medication_list' to match FastAPI)
-      const response = await fetch('http://localhost:8000/api/analyze', {
+      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ medication_list: medNames })

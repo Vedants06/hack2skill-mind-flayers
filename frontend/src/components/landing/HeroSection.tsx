@@ -1,4 +1,4 @@
-import { Brain, Mic, Activity, Eye, AudioLines, Zap, Users, Star } from 'lucide-react';
+import { Brain, Mic, Eye, AudioLines, Zap, Users, Star } from 'lucide-react';
 
 interface HeroSectionProps {
   onStartCheckup: () => void;

@@ -1,4 +1,3 @@
-import React from 'react';
 import { History, MessageSquare } from 'lucide-react';
 
 export const ChatSidebar = () => {

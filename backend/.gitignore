@@ -18,3 +18,4 @@ dist/
 backend/hackwins-mind-flayers-firebase-adminsdk-fbsvc-ccc4812dec.json
 # Ignore ALL Firebase Service Account JSON keys
 *-firebase-adminsdk-*.json
+hackwins-mind-flayers-firebase-adminsdk-fbsvc-ccc4812dec.json

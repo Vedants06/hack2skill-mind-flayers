@@ -5,16 +5,13 @@ import {
   FileText, RefreshCw, X, Play, Square, History, Calendar, ChevronRight,
   Brain, Waves, Eye, Zap, CheckCircle2, Sparkles
 } from 'lucide-react';
+import { User } from 'firebase/auth';
 // Firebase logic preserved
 import { db } from '../firebase/firebase'; 
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 
 interface DiagnosticPageProps {
-  user?: {
-    uid?: string;
-    displayName?: string;
-    photoURL?: string;
-  } | null;
+  user?: User | null;
 }
 
 export default function DiagnosticPage({ user }: DiagnosticPageProps) {
