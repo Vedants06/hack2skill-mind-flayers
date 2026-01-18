@@ -19,7 +19,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-button.default-btn {
+button {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -29,9 +29,9 @@ button.default-btn {
   cursor: pointer;
   transition: border-color 0.25s;
 }
-button.default-btn:focus,
+button:focus,
 
-button.default-btn:hover {
+button:hover {
   border: #ffffff;
 }
 

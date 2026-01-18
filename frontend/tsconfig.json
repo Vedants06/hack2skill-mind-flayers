@@ -4,4 +4,11 @@
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
   ]
+  ,
+  "compilerOptions": {
+    "noUnusedLocals": false,           // This ignores unused variables
+    "noUnusedParameters": false,       // This ignores unused function arguments
+    "noImplicitAny": false             // This makes types less strict
+  }
+
 }

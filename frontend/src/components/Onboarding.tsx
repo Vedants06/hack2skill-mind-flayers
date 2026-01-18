@@ -1,14 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Fixed unused React import
 import { motion, AnimatePresence } from 'framer-motion';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { GlassCard } from './ui/GlassCard';
 import { Loader2, ChevronRight, Check } from 'lucide-react';
 
+// Define a proper interface for your form data to avoid 'any'
+interface UserFormData {
+  age: string;
+  gender: string;
+  height: string;
+  weight: string;
+  conditions: string[];
+}
+
 interface OnboardingProps {
   userId: string;
   onComplete: () => void;
-  initialData?: any; // New optional prop for edit mode
+  initialData?: Partial<UserFormData> | null; 
 }
 
 const steps = [
@@ -20,16 +29,19 @@ const steps = [
 export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, initialData }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [newCondition, setNewCondition] = useState('');
+  const [showValidationError, setShowValidationError] = useState(false);
+  
+  const [formData, setFormData] = useState<UserFormData>({
     age: '',
     gender: '',
     height: '',
     weight: '',
-    conditions: [] as string[]
+    conditions: []
   });
   
-  // Pre-fill data if editing, or reset if no data (for new user)
-  React.useEffect(() => {
+  // Use useEffect directly (React.useEffect is fine, but standard is better)
+  useEffect(() => {
     if (initialData) {
       setFormData({
         age: initialData.age || '',
@@ -39,7 +51,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
         conditions: initialData.conditions || []
       });
     } else {
-      // Reset form when no initial data (new user case)
       setFormData({
         age: '',
         gender: '',
@@ -47,23 +58,15 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
         weight: '',
         conditions: []
       });
-      // Also reset step to beginning
       setCurrentStep(0);
     }
     setShowValidationError(false);
-  }, [initialData, userId]); // Added userId dependency to trigger reset on user switch
-
-  const [newCondition, setNewCondition] = useState('');
-  const [showValidationError, setShowValidationError] = useState(false);
+  }, [initialData, userId]);
 
   const isStepValid = () => {
-    if (currentStep === 0) {
-      return formData.age && formData.gender;
-    }
-    if (currentStep === 1) {
-      return formData.height && formData.weight;
-    }
-    return true; // Step 2 (medical history) is optional
+    if (currentStep === 0) return !!(formData.age && formData.gender);
+    if (currentStep === 1) return !!(formData.height && formData.weight);
+    return true; 
   };
 
   const handleNext = () => {
@@ -194,6 +197,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
                       {['Male', 'Female', 'Other'].map(gender => (
                         <button
                           key={gender}
+                          type="button"
                           onClick={() => setFormData({ ...formData, gender })}
                           className={`py-3 px-4 rounded-xl border-2 transition-all
                             ${formData.gender === gender 
@@ -263,6 +267,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
                         placeholder="e.g. Type 2 Diabetes"
                       />
                       <button 
+                        type="button"
                         onClick={addCondition}
                         className="px-4 py-3 bg-sky-500 text-white rounded-xl hover:bg-sky-600 transition-colors"
                       >
@@ -277,6 +282,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
                         >
                           {condition}
                           <button 
+                            type="button"
                             onClick={() => removeCondition(idx)}
                             className="hover:text-sky-900"
                           >
@@ -284,9 +290,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
                           </button>
                         </span>
                       ))}
-                      {formData.conditions.length === 0 && (
-                        <p className="text-sm text-slate-400 italic">No conditions added yet</p>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -298,42 +301,32 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
         <div className="p-6 border-t border-slate-100 bg-slate-50/50">
           {showValidationError && (
             <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
-              Please fill in all required fields before proceeding
+              Please fill in all required fields
             </div>
           )}
           <div className="flex justify-between items-center">
             <button
-              onClick={() => {
-                if (currentStep > 0) {
-                  setCurrentStep(curr => curr - 1);
-                  setShowValidationError(false);
-                }
-              }}
+              type="button"
+              onClick={() => currentStep > 0 && setCurrentStep(curr => curr - 1)}
               disabled={currentStep === 0}
-              className={`px-6 py-2 rounded-xl text-sm font-medium transition-colors
-                ${currentStep === 0 
-                  ? 'text-slate-300 cursor-not-allowed' 
-                  : 'text-slate-600 hover:bg-slate-100'
-                }
-              `}
+              className="px-6 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-30"
             >
               Back
             </button>
             <button
-            onClick={handleNext}
-            disabled={loading || !isStepValid()}
-            className="px-6 py-2.5 bg-sky-500 text-white rounded-xl text-sm font-medium hover:bg-sky-600 transition-all shadow-md shadow-sky-200 flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <Loader2 className="animate-spin w-4 h-4" />
-            ) : currentStep === steps.length - 1 ? (
-              'Complete Profile'
-            ) : (
-              <>
-                Next Step <ChevronRight size={16} />
-              </>
-            )}
-          </button>
+              type="button"
+              onClick={handleNext}
+              disabled={loading}
+              className="px-6 py-2.5 bg-sky-500 text-white rounded-xl text-sm font-medium hover:bg-sky-600 transition-all flex items-center gap-2 disabled:opacity-70"
+            >
+              {loading ? (
+                <Loader2 className="animate-spin w-4 h-4" />
+              ) : currentStep === steps.length - 1 ? (
+                'Complete Profile'
+              ) : (
+                <>Next Step <ChevronRight size={16} /></>
+              )}
+            </button>
           </div>
         </div>
       </GlassCard>

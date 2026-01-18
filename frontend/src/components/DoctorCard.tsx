@@ -15,28 +15,33 @@ interface DoctorCardProps {
   onDelete: (doctorId: string) => void;
 }
 
-const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, onBookAppointment }) => {
+// FIXED: Added 'onDelete' to the destructured props below
+const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, onBookAppointment, onDelete }) => {
   const renderStars = (rating: number) => {
     const stars = [];
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;
 
+    // Full Stars
     for (let i = 0; i < fullStars; i++) {
       stars.push(
-        <span key={i} className="text-yellow-400">★</span>
+        <span key={`full-${i}`} className="text-yellow-400">★</span>
       );
     }
 
+    // Half Star
     if (hasHalfStar) {
       stars.push(
         <span key="half" className="text-yellow-400">☆</span>
       );
     }
 
+    // Empty Stars
     const emptyStars = 5 - Math.ceil(rating);
     for (let i = 0; i < emptyStars; i++) {
       stars.push(
-        <span key={`empty-${i}`} className="text-slate-300">★</span>
+        // FIXED: Used an empty star character '☆' for visual clarity
+        <span key={`empty-${i}`} className="text-slate-300">☆</span>
       );
     }
 
@@ -80,12 +85,14 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, onBookAppointment }) =>
 
       <div className="flex gap-2">
         <button
+          type="button"
           onClick={() => onBookAppointment(doctor)}
           className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
         >
           Book Appointment
         </button>
         <button
+          type="button"
           onClick={() => onDelete(doctor.id)}
           className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
           title="Delete Doctor"

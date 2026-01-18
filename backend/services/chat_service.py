@@ -75,7 +75,7 @@ async def get_chat_response(user_id: str, user_text: str, med_history: list[str]
     
     # --- SYSTEM PROMPT ---
     system_prompt = f"""
-    You are MediBuddy, a bubbly, compassionate health companion. ✨
+    You are MediCare AI assistant, a bubbly, compassionate health companion. ✨
     
     USER CONTEXT: {profile_summary}
     MEDICATIONS: {med_context}
@@ -94,7 +94,7 @@ async def get_chat_response(user_id: str, user_text: str, med_history: list[str]
         # PRIMARY ATTEMPT: Gemini 1.5 Flash with JSON Mode
         # Using "gemini-1.5-flash" directly as the SDK handles the "models/" prefix
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             contents=messages_for_gemini,
             config=types.GenerateContentConfig(
                 system_instruction=system_prompt,
