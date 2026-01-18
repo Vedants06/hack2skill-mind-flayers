@@ -50,11 +50,29 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
       // Also reset step to beginning
       setCurrentStep(0);
     }
+    setShowValidationError(false);
   }, [initialData, userId]); // Added userId dependency to trigger reset on user switch
 
   const [newCondition, setNewCondition] = useState('');
+  const [showValidationError, setShowValidationError] = useState(false);
+
+  const isStepValid = () => {
+    if (currentStep === 0) {
+      return formData.age && formData.gender;
+    }
+    if (currentStep === 1) {
+      return formData.height && formData.weight;
+    }
+    return true; // Step 2 (medical history) is optional
+  };
 
   const handleNext = () => {
+    if (!isStepValid()) {
+      setShowValidationError(true);
+      return;
+    }
+    
+    setShowValidationError(false);
     if (currentStep < steps.length - 1) {
       setCurrentStep(curr => curr + 1);
     } else {
@@ -157,7 +175,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
               {currentStep === 0 && (
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-lg font-semibold text-slate-800 mb-3 tracking-wide">Age</label>
+                    <label className="block text-lg font-semibold text-slate-800 mb-3 tracking-wide">
+                      Age <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="number"
                       value={formData.age}
@@ -167,16 +187,18 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
                     />
                   </div>
                   <div>
-                    <label className="block text-lg font-semibold text-slate-800 mb-3 tracking-wide">Gender</label>
+                    <label className="block text-lg font-semibold text-slate-800 mb-3 tracking-wide">
+                      Gender <span className="text-red-500">*</span>
+                    </label>
                     <div className="grid grid-cols-2 gap-3">
                       {['Male', 'Female', 'Other'].map(gender => (
                         <button
                           key={gender}
                           onClick={() => setFormData({ ...formData, gender })}
-                          className={`py-3 px-4 rounded-xl border transition-all
+                          className={`py-3 px-4 rounded-xl border-2 transition-all
                             ${formData.gender === gender 
-                              ? 'border-sky-500 bg-sky-50 text-sky-700 shadow-sm' 
-                              : 'border-slate-200 hover:border-slate-300 text-white'
+                              ? 'border-sky-500 bg-sky-50 text-sky-700 shadow-md' 
+                              : 'border-slate-200 bg-white hover:border-slate-500 text-slate-600'
                             }
                           `}
                         >
@@ -191,7 +213,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
               {currentStep === 1 && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Height</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Height <span className="text-red-500">*</span>
+                    </label>
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -206,7 +230,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Weight</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Weight <span className="text-red-500">*</span>
+                    </label>
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -269,23 +295,34 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
           </AnimatePresence>
         </div>
 
-        <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center">
-          <button
-            onClick={() => currentStep > 0 && setCurrentStep(curr => curr - 1)}
-            disabled={currentStep === 0}
-            className={`px-6 py-2 rounded-xl text-sm font-medium transition-colors
-              ${currentStep === 0 
-                ? 'text-slate-300 cursor-not-allowed' 
-                : 'text-slate-600 hover:bg-slate-100'
-              }
-            `}
-          >
-            Back
-          </button>
-          <button
+        <div className="p-6 border-t border-slate-100 bg-slate-50/50">
+          {showValidationError && (
+            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
+              Please fill in all required fields before proceeding
+            </div>
+          )}
+          <div className="flex justify-between items-center">
+            <button
+              onClick={() => {
+                if (currentStep > 0) {
+                  setCurrentStep(curr => curr - 1);
+                  setShowValidationError(false);
+                }
+              }}
+              disabled={currentStep === 0}
+              className={`px-6 py-2 rounded-xl text-sm font-medium transition-colors
+                ${currentStep === 0 
+                  ? 'text-slate-300 cursor-not-allowed' 
+                  : 'text-slate-600 hover:bg-slate-100'
+                }
+              `}
+            >
+              Back
+            </button>
+            <button
             onClick={handleNext}
-            disabled={loading}
-            className="px-6 py-2.5 bg-sky-500 text-white rounded-xl text-sm font-medium hover:bg-sky-600 transition-all shadow-md shadow-sky-200 flex items-center gap-2 disabled:opacity-70"
+            disabled={loading || !isStepValid()}
+            className="px-6 py-2.5 bg-sky-500 text-white rounded-xl text-sm font-medium hover:bg-sky-600 transition-all shadow-md shadow-sky-200 flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {loading ? (
               <Loader2 className="animate-spin w-4 h-4" />
@@ -297,6 +334,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ userId, onComplete, init
               </>
             )}
           </button>
+          </div>
         </div>
       </GlassCard>
     </div>
