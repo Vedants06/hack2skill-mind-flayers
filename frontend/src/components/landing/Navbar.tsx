@@ -1,6 +1,5 @@
 import { cn } from '../../libs/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
-// Ensure the path below is correct for your image file
 import logoImg from '../../assets/logo_crop-removebg-preview.png';
 
 interface NavbarProps {
