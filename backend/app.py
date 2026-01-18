@@ -51,21 +51,15 @@ if not os.path.exists(static_path):
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Enable CORS for Frontend communication
-app.add_middleware(
-    CORSMiddleware,
-    allow_origin_regex=r"https://.*\.vercel\.app",  # All Vercel deployments
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://medicare-vision.vercel.app",
+]
 
-# Also add specific origins for local development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5173",
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
