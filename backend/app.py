@@ -53,12 +53,18 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Enable CORS for Frontend communication
 app.add_middleware(
     CORSMiddleware,
+    allow_origin_regex=r"https://.*\.vercel\.app",  # All Vercel deployments
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Also add specific origins for local development
+app.add_middleware(
+    CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",          # Local React development
-        "http://localhost:5173",          # Local development
-        "https://medicare-vision.vercel.app", # Production frontend
-        "https://medicare-backend-zeta.vercel.app", # Production backend
-        "https://*.vercel.app"  # Allow all Vercel preview deployments
+        "http://localhost:3000",
+        "http://localhost:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
