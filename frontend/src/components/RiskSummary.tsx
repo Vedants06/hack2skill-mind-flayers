@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 const RiskSummary = ({ history }: { history: any[] }) => {
   const total = history.length;

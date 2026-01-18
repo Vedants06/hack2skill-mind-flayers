@@ -14,8 +14,8 @@ import { auth } from './firebase';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
-  login: (email: string, pass: string) => Promise<void>;
+  signInWithGoogle: () => Promise<any>;
+  login: (email: string, pass: string) => Promise<any>;
   signup: (email: string, pass: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
 }

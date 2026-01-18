@@ -110,6 +110,7 @@ const App: React.FC = () => {
         onLogout={logout}
         onNavigate={handleNavigate}
         activeSection={activeSection}
+        onEditProfile={() => setEditingProfile(true)}
       />
     )}
 

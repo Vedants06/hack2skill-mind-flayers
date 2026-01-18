@@ -4,6 +4,7 @@ import {
   Stethoscope, Send, Pill, Activity, Heart, Sparkles, Plus
 } from 'lucide-react';
 import { db } from '../firebase/firebase';
+import API_BASE_URL from '../config.ts';
 import {
   collection,
   query,
@@ -100,7 +101,7 @@ export default function AssistantPage({ user, medHistory, userProfile }: any) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/chat', {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

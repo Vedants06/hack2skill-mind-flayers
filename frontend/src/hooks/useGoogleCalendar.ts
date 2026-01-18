@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import API_BASE_URL from '../config.ts';
 
 interface GoogleCredentials {
   token: string;
@@ -27,7 +28,7 @@ export const useGoogleCalendar = (userId: string | null) => {
         setIsLoading(true);
         setAuthMessage('Connecting to Google Calendar...');
         try {
-          const tokenResponse = await fetch('http://localhost:8000/api/calendar/token', {
+          const tokenResponse = await fetch(`${API_BASE_URL}/api/calendar/token`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code, userId: storedUserId })
@@ -95,7 +96,7 @@ export const useGoogleCalendar = (userId: string | null) => {
     try {
       // Get authorization URL from backend
       const response = await fetch(
-        `http://localhost:8000/api/calendar/auth-url?user_id=${userId}`
+        `${API_BASE_URL}/api/calendar/auth-url?user_id=${userId}`
       );
       
       if (!response.ok) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DoctorCard from './DoctorCard';
 import { db, collection, onSnapshot, addDoc, query, orderBy, deleteDoc, doc, getDocs, where } from '../firebase/firebase';
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
+import API_BASE_URL from '../config.ts';
 
 interface Doctor {
   id: string;
@@ -24,7 +25,8 @@ const BookAppointment: React.FC<BookAppointmentProps> = ({ user }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSpeciality, setFilterSpeciality] = useState('');
   
-  const { credentials, isAuthorized, isLoading: calendarLoading, authMessage, authorizeCalendar, revokeAuthorization } = useGoogleCalendar(user?.uid);
+  // Google Calendar integration
+  const { credentials, isAuthorized, authMessage, isLoading: calendarLoading, authorizeCalendar, revokeAuthorization } = useGoogleCalendar(user?.uid);
   
   const [bookingData, setBookingData] = useState({
     patientName: user?.displayName || '',
@@ -144,7 +146,8 @@ const BookAppointment: React.FC<BookAppointmentProps> = ({ user }) => {
       
       if (isAuthorized && credentials) {
         try {
-          const calendarResponse = await fetch('http://localhost:8000/appointments', {
+          appointmentData.googleCredentials = credentials;
+          const calendarResponse = await fetch(`${API_BASE_URL}/appointments`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(appointmentData)

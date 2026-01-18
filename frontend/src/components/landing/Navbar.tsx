@@ -1,19 +1,19 @@
 import { cn } from '../../libs/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
+import { User } from 'firebase/auth';
+// Ensure the path below is correct for your image file
 import logoImg from '../../assets/logo_crop-removebg-preview.png';
 
 interface NavbarProps {
-  user?: {
-    displayName?: string;
-    photoURL?: string;
-  } | null;
+  user?: User | null;
   onLogin?: () => void;
   onLogout?: () => void;
   onNavigate: (section: string) => void;
   activeSection: string;
+  onEditProfile?: () => void;
 }
 
-export const Navbar = ({ user, onLogin, onLogout, onNavigate, activeSection }: NavbarProps) => {
+export const Navbar = ({ user, onLogin, onLogout, onNavigate, activeSection, onEditProfile }: NavbarProps) => {
   
   // Scrolls smoothly to the top of the page
   const scrollToTop = () => {
@@ -122,10 +122,14 @@ export const Navbar = ({ user, onLogin, onLogout, onNavigate, activeSection }: N
         <div className="flex items-center gap-4">
           {user ? (
             <div className="flex items-center gap-3">
-              <Avatar className="w-9 h-9 border-2 border-emerald-200">
-                <AvatarImage src={user.photoURL || ''} />
+              <Avatar 
+                className="w-9 h-9 border-2 border-emerald-200 cursor-pointer hover:border-emerald-400 transition-colors" 
+                onClick={onEditProfile}
+                title="Click to edit profile"
+              >
+                <AvatarImage src={user?.photoURL ?? ''} />
                 <AvatarFallback className="bg-emerald-100 text-emerald-700 font-semibold text-sm">
-                  {user.displayName?.charAt(0) || 'U'}
+                  {user?.displayName?.charAt(0) ?? 'U'}
                 </AvatarFallback>
               </Avatar>
               <button
