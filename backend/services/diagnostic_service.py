@@ -15,6 +15,7 @@ from firebase_admin import credentials, initialize_app, _apps
 
 load_dotenv()
 
+BACKEND_URL = os.getenv("BACKEND_URL")
 
 # Get credentials from environment variable
 cred_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
@@ -100,7 +101,7 @@ async def run_diagnosis(user_id: str, image_data: bytes, audio_data: bytes, imag
         output_audio_path = os.path.join("static", filename)
         
         text_to_speech_with_gtts_old(ai_text, output_audio_path)
-        audio_url = f"http://localhost:8000/static/{filename}"
+        audio_url = f"{BACKEND_URL}/static/{filename}"
 
         # --- STEP 4: SAVE TO FIREBASE ---
         summary_preview = ai_text[:60].strip() + "..." 
