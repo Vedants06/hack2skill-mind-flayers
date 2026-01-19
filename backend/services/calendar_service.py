@@ -19,8 +19,8 @@ class GoogleCalendarService:
         self.is_configured = (
             client_id and 
             client_secret and 
-            client_id != "your_google_client_id_here" and 
-            client_secret != "your_google_client_secret_here"
+            client_id != "client_id" and 
+            client_secret != "client_secret"
         )
         
         self.client_config = {
@@ -39,7 +39,7 @@ class GoogleCalendarService:
             # Return a fake URL for development purposes when credentials are missing
             # This allows the frontend to simulate the flow
             print("WARNING: Google Calendar credentials missing. Using MOCK mode.")
-            return "http://localhost:5173/calendar-callback.html?code=MOCK_CODE&state=" + (state or "mock_state"), state or "mock_state"
+            return "https://medicare-vision.vercel.app/calendar-callback.html?code=MOCK_CODE&state=" + (state or "mock_state"), state or "mock_state"
         
         flow = Flow.from_client_config(
             self.client_config,
