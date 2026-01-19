@@ -9,6 +9,7 @@ import { User } from 'firebase/auth';
 // Firebase logic preserved
 import { db } from '../firebase/firebase'; 
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import API_BASE_URL from '../config.ts';
 
 interface DiagnosticPageProps {
   user?: User | null;
@@ -104,7 +105,7 @@ export default function DiagnosticPage({ user }: DiagnosticPageProps) {
       if (audioBlob) formData.append('audio', audioBlob, 'recording.mp3');
       formData.append('user_id', user?.uid || 'guest_user');
 
-      const response = await fetch('http://127.0.0.1:8000/api/diagnose', {
+      const response = await fetch(`${API_BASE_URL}/api/diagnose`, {
         method: 'POST',
         body: formData,
       });
