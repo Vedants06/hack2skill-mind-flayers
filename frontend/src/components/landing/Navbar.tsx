@@ -116,6 +116,19 @@ export const Navbar = ({ user, onLogin, onLogout, onNavigate, activeSection, onE
           >
             My Appointments
           </button>
+          
+          {/* TEMPORARY: Admin-only button */}
+          {user?.email === '0131ramram@gmail.com' && (
+            <button
+              onClick={() => onNavigate('add-doctor')}
+              className={cn(
+                "text-sm font-medium transition-colors hover:text-emerald-600",
+                activeSection === 'add-doctor' ? "text-emerald-600" : "text-muted-foreground"
+              )}
+            >
+              Add Doctor
+            </button>
+          )}
         </nav>
 
         {/* Right - Auth */}
