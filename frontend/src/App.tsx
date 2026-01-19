@@ -9,6 +9,7 @@ import HistoryItem from './components/HistoryItem';
 import RiskSummary from './components/RiskSummary';
 import BookAppointment from './components/BookAppointment';
 import MyAppointments from './components/MyAppointments';
+import AddDoctor from './components/AddDoctor';
 
 // Pages
 import DiagnosticPage from './pages/DiagnosticPage';
@@ -99,7 +100,7 @@ const App: React.FC = () => {
   );
 
   // AUTH GATE: Prevent empty screen by ensuring AuthPage shows if user is null and in a restricted section
-  const isToolSection = ['diagnostic', 'chatbot', 'drug-check', 'appointments', 'my-appointments'].includes(activeSection);
+  const isToolSection = ['diagnostic', 'chatbot', 'drug-check', 'appointments', 'my-appointments', 'add-doctor'].includes(activeSection);
   
   return (
     <div className="min-h-screen bg-white font-sans">
@@ -177,6 +178,9 @@ const App: React.FC = () => {
         {/* APPOINTMENT SECTIONS */}
         {activeSection === 'appointments' && user && <BookAppointment user={user} />}
         {activeSection === 'my-appointments' && user && <MyAppointments user={user} />}
+
+        {/* ADD DOCTOR (TEMPORARY) */}
+        {activeSection === 'add-doctor' && user && <AddDoctor />}
 
         {/* ONBOARDING OVERLAY */}
         {(showOnboarding || editingProfile) && user && (
