@@ -22,6 +22,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSpeciality, setFilterSpeciality] = useState('');
   
@@ -94,6 +95,11 @@ const BookAppointment: React.FC<BookAppointmentProps> = ({ user }) => {
 
   const handleBookAppointment = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmBooking = () => {
+    setShowConfirmation(false);
     setShowBookingForm(true);
     setBookingMessage({ type: '', text: '' });
     if (storedWhatsapp) {
@@ -272,6 +278,58 @@ const BookAppointment: React.FC<BookAppointmentProps> = ({ user }) => {
           </div>
         )}
       </div>
+
+      {/* Confirmation Popup */}
+      {showConfirmation && selectedDoctor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-slate-800 mb-2">Confirm Appointment</h2>
+              <p className="text-slate-600 mb-6">Do you want to book an appointment with <span className="font-semibold text-emerald-600">{selectedDoctor.name}</span>?</p>
+              
+              <div className="bg-emerald-50 rounded-xl p-4 mb-6 text-left">
+                <div className="flex items-center gap-2 mb-2">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span className="text-sm font-medium text-slate-700">{selectedDoctor.speciality}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  </svg>
+                  <span className="text-sm text-slate-600">{selectedDoctor.location}</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setShowConfirmation(false);
+                    setSelectedDoctor(null);
+                  }}
+                  className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-3 px-6 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button"
+                  onClick={handleConfirmBooking}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                >
+                  Yes, Proceed
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ... Booking Modal JSX remains same ... */}
       {showBookingForm && selectedDoctor && (
