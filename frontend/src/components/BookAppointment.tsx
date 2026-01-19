@@ -266,6 +266,7 @@ const BookAppointment: React.FC<BookAppointmentProps> = ({ user }) => {
                 doctor={doctor}
                 onBookAppointment={handleBookAppointment}
                 onDelete={handleDeleteDoctor}
+                userEmail={user?.email}
               />
             ))}
           </div>

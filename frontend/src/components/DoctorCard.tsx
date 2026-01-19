@@ -13,10 +13,11 @@ interface DoctorCardProps {
   doctor: Doctor;
   onBookAppointment: (doctor: Doctor) => void;
   onDelete: (doctorId: string) => void;
+  userEmail?: string | null;
 }
 
 // FIXED: Added 'onDelete' to the destructured props below
-const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, onBookAppointment, onDelete }) => {
+const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, onBookAppointment, onDelete, userEmail }) => {
   const renderStars = (rating: number) => {
     const stars = [];
     const fullStars = Math.floor(rating);
@@ -91,14 +92,16 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor, onBookAppointment, onDe
         >
           Book Appointment
         </button>
-        <button
-          type="button"
-          onClick={() => onDelete(doctor.id)}
-          className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
-          title="Delete Doctor"
-        >
-          🗑️
-        </button>
+        {userEmail === '0131ramram@gmail.com' && (
+          <button
+            type="button"
+            onClick={() => onDelete(doctor.id)}
+            className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+            title="Delete Doctor"
+          >
+            🗑️
+          </button>
+        )}
       </div>
     </div>
   );
