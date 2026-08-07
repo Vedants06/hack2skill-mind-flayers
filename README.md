@@ -23,5 +23,3 @@ We chose the healthcare domain because it is "data-rich but insight-poor." Medic
 | **Database/Auth** | Firebase |
 | **APIs** | Google Calendar API, gTTS |
 | **Deployment** | Vercel |
-
-## 📦 Installation & Setup
