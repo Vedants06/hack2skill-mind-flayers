@@ -13,6 +13,7 @@ backend/services/__pycache__/interaction_service.cpython-313.pyc
 *.pyc
 *.pyo
 *.pyd
+packages
 
 venv/
 env/
